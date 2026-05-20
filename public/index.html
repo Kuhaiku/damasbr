@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dama Brasileira Pro</title>
+    <style>
+        :root {
+            --bg-dark: #121212; --panel-bg: #1e1e1e;
+            --board-light: #e6c280; --board-dark: #6e4420; 
+            --highlight: rgba(76, 175, 80, 0.8);
+            --p1-color: #f5f5f5; --p2-color: #2b2b2b;
+        }
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background-color: var(--bg-dark); color: white; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden;}
+        
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 100; transition: opacity 0.3s;}
+        .hidden { display: none !important; }
+        .modal { background: var(--panel-bg); padding: 30px; border-radius: 12px; text-align: center; width: 85%; max-width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #333;}
+        .modal h2 { margin-top: 0; color: #fff; }
+        .modal input { width: 100%; padding: 12px; margin: 15px 0; border-radius: 6px; border: 1px solid #444; background: #111; color: white; box-sizing: border-box; outline: none;}
+        .modal input:focus { border-color: #4CAF50; }
+        .btn { width: 100%; padding: 12px; border-radius: 6px; border: none; background: #4CAF50; color: white; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; margin-top: 10px;}
+        .btn:hover { background: #45a049; }
+        
+        #gameUI { display: none; width: 100%; max-width: 400px; padding: 10px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center;}
+        
+        .info-panel { display: flex; justify-content: space-between; width: 360px; margin-bottom: 15px; gap: 10px;}
+        .player-card { background: var(--panel-bg); padding: 12px 10px; border-radius: 8px; flex: 1; text-align: center; border: 2px solid #333; transition: 0.3s; position: relative;}
+        .active-turn { border-color: #4CAF50; background: #1a2e1e; }
+        
+        /* Correção do Placar */
+        .score-badge { 
+            position: absolute; top: -10px; right: -10px; 
+            background: #ff9800; color: #000; font-weight: bold; 
+            min-width: 24px; height: 24px; border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            padding: 0 6px; box-sizing: border-box;
+        }
+        
+        #myRole { text-align: center; margin-bottom: 15px; font-weight: 500; color: #aaa; font-size: 14px; width: 100%;}
+        
+        #board-wrapper { padding: 8px; background: #2c1a0e; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.7); }
+        #board { display: grid; grid-template-columns: repeat(8, 45px); grid-template-rows: repeat(8, 45px); width: 360px; height: 360px; border: 2px solid #1a0f08;}
+        
+        .cell { width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; position: relative; }
+        .light { background-color: var(--board-light); }
+        .dark { background-color: var(--board-dark); }
+        
+        .piece { width: 36px; height: 36px; border-radius: 50%; box-shadow: 0 3px 5px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: transform 0.2s; pointer-events: none; z-index: 2;}
+        .p1 { background-color: var(--p1-color); border: 2px solid #aaa; color: black; }
+        .p2 { background-color: var(--p2-color); border: 2px solid #000; color: white; }
+        
+        .dead { opacity: 0.3; }
+        .selected { transform: scale(1.15); box-shadow: 0 0 15px #ffeb3b; border-color: #ffeb3b; }
+        
+        .highlight { cursor: pointer; }
+        .highlight::after { content: ''; width: 18px; height: 18px; background: var(--highlight); border-radius: 50%; position: absolute; z-index: 1;}
+        .selectable { cursor: pointer; }
+        .selectable:hover { transform: scale(1.08); }
+    </style>
+</head>
+<body>
+    <div id="loginOverlay" class="overlay">
+        <div class="modal">
+            <h2>Dama Brasileira</h2>
+            <input type="text" id="playerName" placeholder="Digite seu nome..." autocomplete="off">
+            <button class="btn" onclick="joinGame()">Entrar na Sala</button>
+        </div>
+    </div>
+
+    <div id="gameOverOverlay" class="overlay hidden">
+        <div class="modal">
+            <h2>Fim de Jogo!</h2>
+            <p id="winnerText" style="font-size: 18px; margin-bottom: 20px;">Vencedor</p>
+            <button class="btn" onclick="requestRestart()">Jogar Novamente</button>
+        </div>
+    </div>
+
+    <div id="gameUI" class="hidden">
+        <div class="info-panel">
+            <div class="player-card" id="cardP1">
+                <div class="score-badge" id="scoreP1">0</div>
+                Brancas<br><b id="nameP1">...</b>
+            </div>
+            <div class="player-card" id="cardP2">
+                <div class="score-badge" id="scoreP2">0</div>
+                Pretas<br><b id="nameP2">...</b>
+            </div>
+        </div>
+        <div id="myRole">Conectando...</div>
+        
+        <div id="board-wrapper">
+            <div id="board"></div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let myRole = null;
+        let currentBoard = [];
+        let currentTurn = 1;
+        let gameActive = false;
+        
+        let globalValidActions = [];
+        let isMultiJumping = false;
+        let selectedCell = null;
+
+        const myNum = () => myRole === 'p1' ? 1 : 2;
+        const isValid = (r, c) => r >= 0 && r < 8 && c >= 0 && c < 8;
+        const cloneBoard = (b) => b.map(row => [...row]);
+
+        function joinGame() {
+            const name = document.getElementById('playerName').value.trim();
+            if (!name) return;
+            socket.emit('join', name);
+            document.getElementById('loginOverlay').classList.add('hidden');
+            document.getElementById('gameUI').classList.remove('hidden');
+        }
+
+        socket.on('role', (role) => {
+            myRole = role;
+            const roles = {'p1': 'Você joga com as Brancas', 'p2': 'Você joga com as Pretas', 'spectator': 'Você é Espectador (Fila)'};
+            document.getElementById('myRole').innerText = roles[role];
+        });
+
+        socket.on('playerLeft', () => {
+            alert("Um jogador saiu da sala. O tabuleiro e os placares foram resetados.");
+            document.getElementById('gameOverOverlay').classList.add('hidden');
+        });
+
+        socket.on('announceWinner', (data) => {
+            document.getElementById('winnerText').innerHTML = `<b>${data.winnerName}</b> venceu a partida!`;
+            document.getElementById('scoreP1').innerText = data.scores.p1;
+            document.getElementById('scoreP2').innerText = data.scores.p2;
+            document.getElementById('gameOverOverlay').classList.remove('hidden');
+        });
+
+        function requestRestart() {
+            socket.emit('restartGame');
+            document.getElementById('gameOverOverlay').classList.add('hidden');
+        }
+
+        socket.on('gameState', (state) => {
+            currentBoard = state.board;
+            currentTurn = state.currentTurn;
+            gameActive = state.gameActive;
+            isMultiJumping = false;
+            selectedCell = null;
+            
+            if(gameActive) {
+                document.getElementById('gameOverOverlay').classList.add('hidden');
+            }
+            
+            document.getElementById('cardP1').classList.toggle('active-turn', currentTurn === 1);
+            document.getElementById('cardP2').classList.toggle('active-turn', currentTurn === 2);
+            document.getElementById('nameP1').innerText = state.players.p1 ? state.players.p1.name : 'Aguardando';
+            document.getElementById('nameP2').innerText = state.players.p2 ? state.players.p2.name : 'Aguardando';
+            document.getElementById('scoreP1').innerText = state.scores.p1;
+            document.getElementById('scoreP2').innerText = state.scores.p2;
+            
+            // Só verifica os movimentos e o fim de jogo se a partida estiver ativa
+            if (gameActive && myRole !== 'spectator' && currentTurn === myNum()) {
+                globalValidActions = calculateAllValidActions(currentBoard, myNum());
+                
+                if (globalValidActions.length === 0 && countPieces(currentBoard) > 0) {
+                    const opponentRole = myRole === 'p1' ? 'p2' : 'p1';
+                    socket.emit('gameOver', opponentRole);
+                }
+            } else {
+                globalValidActions = [];
+            }
+            renderBoard();
+        });
+
+        function countPieces(board) {
+            let count = 0;
+            board.forEach(row => row.forEach(cell => { if(cell !== 0) count++; }));
+            return count;
+        }
+
+        function renderBoard() {
+            const boardDiv = document.getElementById('board');
+            boardDiv.innerHTML = '';
+            
+            const validStartCells = !isMultiJumping ? globalValidActions.map(a => `${a.startR},${a.startC}`) : [];
+            const validLandings = selectedCell ? globalValidActions.filter(a => a.startR === selectedCell.r && a.startC === selectedCell.c).map(a => a.path[0]) : [];
+
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const cell = document.createElement('div');
+                    const isDark = (r + c) % 2 !== 0;
+                    cell.className = `cell ${isDark ? 'dark' : 'light'}`;
+                    
+                    const isLanding = validLandings.find(l => l && l.r === r && l.c === c);
+                    if (isLanding) cell.classList.add('highlight');
+
+                    if (isDark) cell.onclick = () => handleCellClick(r, c, isLanding);
+
+                    let val = currentBoard[r][c];
+                    if (val !== 0) {
+                        const piece = document.createElement('div');
+                        const isDead = val < 0; 
+                        const absVal = Math.abs(val);
+                        
+                        piece.className = `piece ${absVal === 1 || absVal === 3 ? 'p1' : 'p2'}`;
+                        if (isDead) piece.classList.add('dead');
+                        if (absVal > 2) piece.innerHTML = '👑'; 
+                        
+                        if (selectedCell && selectedCell.r === r && selectedCell.c === c) piece.classList.add('selected');
+                        if (validStartCells.includes(`${r},${c}`)) piece.classList.add('selectable');
+                        
+                        cell.appendChild(piece);
+                    }
+                    boardDiv.appendChild(cell);
+                }
+            }
+        }
+
+        function handleCellClick(r, c, isLanding) {
+            if (!gameActive || myRole === 'spectator' || currentTurn !== myNum()) return;
+
+            if (!isMultiJumping && globalValidActions.some(a => a.startR === r && a.startC === c)) {
+                selectedCell = { r, c };
+                renderBoard();
+            } else if (isLanding && selectedCell) {
+                executeActionStep(r, c);
+            }
+        }
+
+        function executeActionStep(targetR, targetC) {
+            let chosenActions = globalValidActions.filter(a => a.startR === selectedCell.r && a.startC === selectedCell.c && a.path[0].r === targetR && a.path[0].c === targetC);
+            
+            const movingPiece = currentBoard[selectedCell.r][selectedCell.c];
+            currentBoard[targetR][targetC] = movingPiece;
+            currentBoard[selectedCell.r][selectedCell.c] = 0;
+
+            if (chosenActions[0].captured.length > 0) {
+                const cap = chosenActions[0].captured[0];
+                currentBoard[cap.r][cap.c] = -Math.abs(currentBoard[cap.r][cap.c]); 
+            }
+
+            chosenActions = chosenActions.map(a => ({
+                startR: targetR, startC: targetC,
+                path: a.path.slice(1), captured: a.captured.slice(1)
+            }));
+
+            if (chosenActions[0].path.length === 0) finalizeTurn(targetR, targetC, movingPiece);
+            else {
+                isMultiJumping = true;
+                selectedCell = { r: targetR, c: targetC };
+                globalValidActions = chosenActions;
+                renderBoard();
+            }
+        }
+
+        function finalizeTurn(finalR, finalC, pieceVal) {
+            for(let i=0; i<8; i++) {
+                for(let j=0; j<8; j++) {
+                    if(currentBoard[i][j] < 0) currentBoard[i][j] = 0;
+                }
+            }
+            if (pieceVal === 1 && finalR === 0) currentBoard[finalR][finalC] = 3;
+            if (pieceVal === 2 && finalR === 7) currentBoard[finalR][finalC] = 4;
+
+            const nextTurn = currentTurn === 1 ? 2 : 1;
+            socket.emit('makeMove', { board: currentBoard, nextTurn });
+        }
+
+        function calculateAllValidActions(board, playerNum) {
+            let captureActions = []; let simpleActions = []; let maxCaps = 0;
+
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    let val = board[r][c];
+                    if (val === playerNum || val === playerNum + 2) {
+                        let paths = findCapturesDFS(r, c, val, board, [], []);
+                        if (paths.length > 0) {
+                            paths.forEach(p => {
+                                let len = p.captured.length;
+                                if (len > maxCaps) maxCaps = len;
+                                captureActions.push({ startR: r, startC: c, path: p.path, captured: p.captured });
+                            });
+                        } else if (maxCaps === 0) {
+                            let moves = findSimpleMoves(r, c, val, board);
+                            moves.forEach(m => simpleActions.push({ startR: r, startC: c, path: [m], captured: [] }));
+                        }
+                    }
+                }
+            }
+            return maxCaps > 0 ? captureActions.filter(a => a.captured.length === maxCaps) : simpleActions;
+        }
+
+        function findCapturesDFS(r, c, piece, boardState, pathSoFar, capturedSoFar) {
+            let isDama = piece > 2; let myTeam = piece === 1 || piece === 3 ? 1 : 2;
+            let directions = [[-1,-1], [-1,1], [1,-1], [1,1]]; let finalPaths = [];
+
+            for (let [dr, dc] of directions) {
+                if (isDama) {
+                    let dist = 1, enemyPos = null;
+                    while (true) {
+                        let nr = r + dr * dist, nc = c + dc * dist;
+                        if (!isValid(nr, nc)) break;
+                        let cell = boardState[nr][nc];
+                        if (cell !== 0) {
+                            let cellTeam = (cell === 1 || cell === 3) ? 1 : 2;
+                            if (cellTeam !== myTeam && !capturedSoFar.some(cap => cap.r === nr && cap.c === nc)) enemyPos = {r: nr, c: nc};
+                            break; 
+                        }
+                        dist++;
+                    }
+
+                    if (enemyPos) {
+                        let lDist = dist + 1;
+                        while (true) {
+                            let lr = r + dr * lDist, lc = c + dc * lDist;
+                            if (!isValid(lr, lc) || boardState[lr][lc] !== 0) break; 
+
+                            let newBoard = cloneBoard(boardState);
+                            newBoard[r][c] = 0; newBoard[lr][lc] = piece; 
+                            let newPath = [...pathSoFar, {r: lr, c: lc}];
+                            let newCaps = [...capturedSoFar, enemyPos];
+
+                            let subPaths = findCapturesDFS(lr, lc, piece, newBoard, newPath, newCaps);
+                            if (subPaths.length > 0) finalPaths.push(...subPaths);
+                            else finalPaths.push({path: newPath, captured: newCaps});
+                            
+                            lDist++;
+                        }
+                    }
+                } else {
+                    let nr = r + dr, nc = c + dc;
+                    if (isValid(nr, nc)) {
+                        let cell = boardState[nr][nc];
+                        let cellTeam = (cell === 1 || cell === 3) ? 1 : 2;
+                        if (cell !== 0 && cellTeam !== myTeam && !capturedSoFar.some(cap => cap.r === nr && cap.c === nc)) {
+                            let lr = nr + dr, lc = nc + dc;
+                            if (isValid(lr, lc) && boardState[lr][lc] === 0) {
+                                let newBoard = cloneBoard(boardState);
+                                newBoard[r][c] = 0; newBoard[lr][lc] = piece;
+                                
+                                let newPath = [...pathSoFar, {r: lr, c: lc}];
+                                let newCaps = [...capturedSoFar, {r: nr, c: nc}];
+
+                                let subPaths = findCapturesDFS(lr, lc, piece, newBoard, newPath, newCaps);
+                                if (subPaths.length > 0) finalPaths.push(...subPaths);
+                                else finalPaths.push({path: newPath, captured: newCaps});
+                            }
+                        }
+                    }
+                }
+            }
+            return finalPaths;
+        }
+
+        function findSimpleMoves(r, c, piece, boardState) {
+            let isDama = piece > 2; let dir = (piece === 1 || piece === 3) ? -1 : 1;
+            let directions = isDama ? [[-1,-1], [-1,1], [1,-1], [1,1]] : [[dir,-1], [dir,1]]; 
+            let moves = [];
+
+            for (let [dr, dc] of directions) {
+                if (isDama) {
+                    let dist = 1;
+                    while (true) {
+                        let nr = r + dr * dist, nc = c + dc * dist;
+                        if (!isValid(nr, nc) || boardState[nr][nc] !== 0) break;
+                        moves.push({r: nr, c: nc}); dist++;
+                    }
+                } else {
+                    let nr = r + dr, nc = c + dc;
+                    if (isValid(nr, nc) && boardState[nr][nc] === 0) moves.push({r: nr, c: nc});
+                }
+            }
+            return moves;
+        }
+    </script>
+</body>
+</html>

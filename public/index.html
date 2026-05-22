@@ -10,8 +10,25 @@
             --board-light: #e6c280; --board-dark: #6e4420; 
             --highlight: rgba(76, 175, 80, 0.8);
             --p1-color: #f5f5f5; --p2-color: #2b2b2b;
+            
+            /* Tamanhos responsivos automáticos */
+            --cell-size: 45px;
+            --board-size: calc(var(--cell-size) * 8);
         }
-        body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background-color: var(--bg-dark); color: white; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden;}
+        
+        /* Ajustes de escala dinâmicos para celulares pequenos */
+        @media (max-width: 450px) {
+            :root {
+                --cell-size: 38px;
+            }
+        }
+        @media (max-width: 380px) {
+            :root {
+                --cell-size: 33px;
+            }
+        }
+        
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background-color: var(--bg-dark); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow-x: hidden;}
         
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 100; transition: opacity 0.3s;}
         .hidden { display: none !important; }
@@ -21,71 +38,84 @@
         .modal input:focus { border-color: #4CAF50; }
         .btn { width: 100%; padding: 12px; border-radius: 6px; border: none; background: #4CAF50; color: white; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; margin-top: 10px;}
         .btn:hover { background: #45a049; }
-        .btn.secondary { background: #444; border: 1px solid #666; margin-top: 10px; font-size: 14px; padding: 8px;}
+        .btn.secondary { background: #444; border: 1px solid #666; margin-top: 10px; font-size: 14px; padding: 8px; width: var(--board-size);}
         .btn.secondary:hover { background: #555; }
         
+        /* Layout Principal */
         #mainLayout { display: flex; gap: 20px; max-width: 1200px; width: 100%; justify-content: center; padding: 20px; box-sizing: border-box; }
         
+        /* Painéis Laterais */
         .side-panel { background: var(--panel-bg); border-radius: 8px; border: 2px solid #333; width: 260px; display: flex; flex-direction: column; overflow: hidden; height: 500px; }
         .panel-header { background: #2c2c2c; padding: 12px; font-weight: bold; text-align: center; border-bottom: 2px solid #333; font-size: 14px; letter-spacing: 1px;}
         .panel-content { flex: 1; overflow-y: auto; padding: 10px; font-size: 14px; display: flex; flex-direction: column; gap: 8px; }
         
-        /* Chat Styles */
-        .chat-msg { background: #2a2a2a; padding: 8px 10px; border-radius: 6px; line-height: 1.4;}
+        /* Chat */
+        .chat-msg { background: #2a2a2a; padding: 8px 10px; border-radius: 6px; line-height: 1.4; word-break: break-word;}
         .chat-msg.system { background: transparent; color: #aaa; font-style: italic; text-align: center; font-size: 12px; }
         .chat-msg b { color: #4CAF50; }
         #chatInputContainer { display: flex; border-top: 2px solid #333; }
-        #chatInput { border: none; flex: 1; padding: 12px; background: #111; color: white; outline: none; }
+        #chatInput { border: none; flex: 1; padding: 12px; background: #111; color: white; outline: none; font-size: 14px;}
         #chatBtn { background: #4CAF50; border: none; color: white; padding: 0 15px; cursor: pointer; font-weight: bold;}
         
-        /* History Styles */
+        /* Histórico */
         .history-move { background: #2a2a2a; padding: 8px 10px; border-radius: 6px; display: flex; justify-content: space-between;}
         .history-move span:last-child { color: #ff9800; font-weight: bold; }
 
+        /* Área do Jogo Central */
         #gameUI { display: flex; flex-direction: column; align-items: center; }
-        
-        .info-panel { display: flex; justify-content: space-between; width: 100%; margin-bottom: 10px; gap: 10px;}
-        .player-card { background: var(--panel-bg); padding: 10px; border-radius: 8px; flex: 1; text-align: center; border: 2px solid #333; transition: 0.3s; position: relative;}
+        .info-panel { display: flex; justify-content: space-between; width: var(--board-size); margin-bottom: 10px; gap: 10px;}
+        .player-card { background: var(--panel-bg); padding: 8px; border-radius: 8px; flex: 1; text-align: center; border: 2px solid #333; transition: 0.3s; position: relative; font-size: 13px;}
         .active-turn { border-color: #4CAF50; background: #1a2e1e; }
+        .score-badge { position: absolute; top: -8px; right: -8px; background: #ff9800; color: #000; font-weight: bold; min-width: 22px; height: 22px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 11px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); padding: 0 4px; box-sizing: border-box; }
+        #myRole { text-align: center; margin-bottom: 10px; font-weight: 500; color: #aaa; font-size: 13px; width: 100%;}
         
-        .score-badge { position: absolute; top: -10px; right: -10px; background: #ff9800; color: #000; font-weight: bold; min-width: 24px; height: 24px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); padding: 0 6px; box-sizing: border-box; }
-        
-        #myRole { text-align: center; margin-bottom: 10px; font-weight: 500; color: #aaa; font-size: 14px; width: 100%;}
-        
-        /* Coordinate Board Layout */
-        .board-layout { display: grid; grid-template-columns: 25px 360px; grid-template-rows: 360px 25px; gap: 4px; background: #1e1e1e; padding: 15px; border-radius: 8px; border: 2px solid #333;}
+        /* Grid de Coordenadas do Tabuleiro */
+        .board-layout { display: grid; grid-template-columns: 20px var(--board-size); grid-template-rows: var(--board-size) 20px; gap: 4px; background: #1e1e1e; padding: 10px; border-radius: 8px; border: 2px solid #333; box-sizing: border-box;}
         .col-labels { grid-column: 2; grid-row: 2; display: flex; }
-        .col-labels div { flex: 1; display: flex; justify-content: center; align-items: center; font-weight: bold; color: #888; font-size: 13px;}
+        .col-labels div { flex: 1; display: flex; justify-content: center; align-items: center; font-weight: bold; color: #888; font-size: 11px;}
         .row-labels { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; }
-        .row-labels div { flex: 1; display: flex; justify-content: center; align-items: center; font-weight: bold; color: #888; font-size: 13px;}
+        .row-labels div { flex: 1; display: flex; justify-content: center; align-items: center; font-weight: bold; color: #888; font-size: 11px;}
         
-        #board-wrapper { grid-column: 2; grid-row: 1; padding: 0; background: #2c1a0e; box-shadow: 0 10px 40px rgba(0,0,0,0.7); }
-        #board { display: grid; grid-template-columns: repeat(8, 45px); grid-template-rows: repeat(8, 45px); width: 360px; height: 360px; border: 2px solid #1a0f08; box-sizing: border-box;}
+        #board-wrapper { grid-column: 2; grid-row: 1; padding: 0; background: #2c1a0e; box-shadow: 0 10px 40px rgba(0,0,0,0.7); overflow: hidden;}
+        #board { display: grid; grid-template-columns: repeat(8, var(--cell-size)); grid-template-rows: repeat(8, var(--cell-size)); width: var(--board-size); height: var(--board-size); box-sizing: border-box;}
         
-        .cell { width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; position: relative; }
+        /* Células e Peças */
+        .cell { width: var(--cell-size); height: var(--cell-size); display: flex; align-items: center; justify-content: center; position: relative; }
         .light { background-color: var(--board-light); }
         .dark { background-color: var(--board-dark); }
         
-        .piece { width: 36px; height: 36px; border-radius: 50%; box-shadow: 0 3px 5px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: transform 0.2s; pointer-events: none; z-index: 2;}
+        .piece { width: calc(var(--cell-size) * 0.8); height: calc(var(--cell-size) * 0.8); border-radius: 50%; box-shadow: 0 3px 5px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: calc(var(--cell-size) * 0.4); transition: transform 0.2s; pointer-events: none; z-index: 2;}
         .p1 { background-color: var(--p1-color); border: 2px solid #aaa; color: black; }
         .p2 { background-color: var(--p2-color); border: 2px solid #000; color: white; }
-        
         .dead { opacity: 0.3; }
         .selected { transform: scale(1.15); box-shadow: 0 0 15px #ffeb3b; border-color: #ffeb3b; }
-        
         .highlight { cursor: pointer; }
-        .highlight::after { content: ''; width: 18px; height: 18px; background: var(--highlight); border-radius: 50%; position: absolute; z-index: 1;}
+        .highlight::after { content: ''; width: calc(var(--cell-size) * 0.4); height: calc(var(--cell-size) * 0.4); background: var(--highlight); border-radius: 50%; position: absolute; z-index: 1;}
         .selectable { cursor: pointer; }
         .selectable:hover { transform: scale(1.08); }
 
-        @media (max-width: 950px) {
-            #mainLayout { flex-direction: column; align-items: center; }
-            .side-panel { width: 100%; max-width: 400px; height: 250px; }
+        /* Barra de Abas do Celular */
+        .mobile-tabs { display: none; width: 100%; background: #1a1a1a; border-top: 2px solid #333; position: fixed; bottom: 0; left: 0; z-index: 90; }
+        .tab-btn { flex: 1; padding: 15px 0; text-align: center; font-weight: bold; font-size: 14px; color: #888; cursor: pointer; transition: 0.2s; position: relative;}
+        .tab-btn.active { color: #4CAF50; background: #222; border-top: 3px solid #4CAF50; padding-top: 12px; }
+        .tab-badge { position: absolute; top: 10px; right: 20%; background: #ff9800; color: black; font-size: 10px; padding: 1px 6px; border-radius: 10px; font-weight: bold; }
+
+        /* REGRAS DE RESPONSIVIDADE PARA CELULAR (Telas de até 768px) */
+        @media (max-width: 768px) {
+            body { padding-bottom: 60px; justify-content: flex-start; }
+            #mainLayout { padding: 10px; padding-top: 15px; }
+            
+            /* Oculta e transforma em abas controladas por classe no body */
+            .mobile-tabs { display: flex; }
+            .side-panel, #gameUI { display: none; width: 100% !important; max-width: 420px; height: calc(100vh - 90px) !important; }
+            
+            body.tab-game #gameUI { display: flex; }
+            body.tab-history #historyPanel { display: flex; }
+            body.tab-chat #chatPanel { display: flex; }
         }
     </style>
 </head>
-<body>
-    <div id="loginOverlay" class="overlay">
+<body class="tab-game"> <div id="loginOverlay" class="overlay">
         <div class="modal">
             <h2>Dama Brasileira</h2>
             <input type="text" id="playerName" placeholder="Digite seu nome..." autocomplete="off" onkeypress="if(event.key === 'Enter') joinGame()">
@@ -103,10 +133,9 @@
 
     <div id="mainLayout" class="hidden">
         
-        <div class="side-panel">
+        <div class="side-panel" id="historyPanel">
             <div class="panel-header">HISTÓRICO DE MOVIMENTOS</div>
-            <div class="panel-content" id="historyContent">
-                </div>
+            <div class="panel-content" id="historyContent"></div>
         </div>
 
         <div id="gameUI">
@@ -131,19 +160,24 @@
                 <div class="col-labels" id="colLabels"></div>
             </div>
 
-            <button class="btn secondary" onclick="requestSwap()">Trocar Cores (Reiniciar)</button>
+            <button class="btn secondary" onclick="requestSwap()">Trocar Cores</button>
         </div>
 
-        <div class="side-panel">
+        <div class="side-panel" id="chatPanel">
             <div class="panel-header">CHAT DA PARTIDA</div>
-            <div class="panel-content" id="chatContent">
-                </div>
+            <div class="panel-content" id="chatContent"></div>
             <div id="chatInputContainer">
                 <input type="text" id="chatInput" placeholder="Envie uma mensagem..." autocomplete="off" onkeypress="if(event.key === 'Enter') sendChat()">
                 <button id="chatBtn" onclick="sendChat()">Enviar</button>
             </div>
         </div>
 
+    </div>
+
+    <div class="mobile-tabs" id="mobileTabs">
+        <div class="tab-btn active" onclick="switchTab('game')">Jogo</div>
+        <div class="tab-btn" onclick="switchTab('history')">Histórico</div>
+        <div class="tab-btn" onclick="switchTab('chat')">Chat <span class="tab-badge hidden" id="chatBadge">!</span></div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -159,7 +193,6 @@
         let isMultiJumping = false;
         let selectedCell = null;
         
-        // Tracking path notation
         let turnPath = [];
         let turnCaptures = false;
 
@@ -167,6 +200,19 @@
         const isValid = (r, c) => r >= 0 && r < 8 && c >= 0 && c < 8;
         const cloneBoard = (b) => b.map(row => [...row]);
         const getCoordName = (r, c) => String.fromCharCode(65 + c) + (8 - r);
+
+        // Controla a troca de abas no Celular
+        function switchTab(tab) {
+            document.body.className = 'tab-' + tab;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            if(tab === 'game') document.querySelectorAll('.tab-btn')[0].classList.add('active');
+            if(tab === 'history') document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            if(tab === 'chat') {
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+                document.getElementById('chatBadge').classList.add('hidden'); // Limpa o alerta
+            }
+        }
 
         function joinGame() {
             const name = document.getElementById('playerName').value.trim();
@@ -187,12 +233,15 @@
 
         socket.on('newChatMessage', (msg) => {
             appendChat(msg);
+            // Se o usuário estiver jogando e receber chat no celular, mostra um aviso visual na aba
+            if (!document.body.classList.contains('tab-chat') && window.innerWidth <= 768) {
+                document.getElementById('chatBadge').classList.remove('hidden');
+            }
         });
 
         function appendChat(msg) {
             const chatBox = document.getElementById('chatContent');
             const div = document.createElement('div');
-            
             if (msg.system) {
                 div.className = 'chat-msg system';
                 div.innerText = msg.text;
@@ -200,13 +249,12 @@
                 div.className = 'chat-msg';
                 div.innerHTML = `<b>${msg.sender}:</b> ${msg.text}`;
             }
-            
             chatBox.appendChild(div);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
         function requestSwap() {
-            if(confirm("Isso irá trocar as cores e reiniciar a partida. Deseja continuar?")) {
+            if(confirm("Deseja inverter as cores e recomeçar a partida?")) {
                 socket.emit('swapRoles');
             }
         }
@@ -251,7 +299,6 @@
             document.getElementById('scoreP1').innerText = state.scores.p1;
             document.getElementById('scoreP2').innerText = state.scores.p2;
             
-            // Render History
             const historyBox = document.getElementById('historyContent');
             historyBox.innerHTML = '';
             state.moveHistory.forEach((move, index) => {
@@ -262,14 +309,12 @@
             });
             historyBox.scrollTop = historyBox.scrollHeight;
 
-            // Render Full Chat (For reconnects)
             if(state.chatMessages && state.chatMessages.length > 0 && document.getElementById('chatContent').childElementCount === 0) {
                 state.chatMessages.forEach(appendChat);
             }
 
             if (gameActive && myRole !== 'spectator' && currentTurn === myNum()) {
                 globalValidActions = calculateAllValidActions(currentBoard, myNum());
-                
                 if (globalValidActions.length === 0 && countPieces(currentBoard) > 0) {
                     const opponentRole = myRole === 'p1' ? 'p2' : 'p1';
                     socket.emit('gameOver', opponentRole);
@@ -299,13 +344,11 @@
             let renderRows = [0,1,2,3,4,5,6,7];
             let renderCols = [0,1,2,3,4,5,6,7];
             
-            // Gira o tabuleiro visualmente se o jogador for as pretas (P2)
             if (isP2) {
                 renderRows.reverse();
                 renderCols.reverse();
             }
             
-            // Build Labels
             renderCols.forEach(c => {
                 const l = document.createElement('div');
                 l.innerText = String.fromCharCode(65 + c);
@@ -356,7 +399,7 @@
 
             if (!isMultiJumping && globalValidActions.some(a => a.startR === r && a.startC === c)) {
                 selectedCell = { r, c };
-                turnPath = [{r, c}]; // Inicia o caminho para notação
+                turnPath = [{r, c}];
                 turnCaptures = false;
                 renderBoard();
             } else if (isLanding && selectedCell) {
@@ -374,10 +417,10 @@
             if (chosenActions[0].captured.length > 0) {
                 const cap = chosenActions[0].captured[0];
                 currentBoard[cap.r][cap.c] = -Math.abs(currentBoard[cap.r][cap.c]); 
-                turnCaptures = true; // Registra que houve captura
+                turnCaptures = true;
             }
 
-            turnPath.push({r: targetR, c: targetC}); // Registra o passo
+            turnPath.push({r: targetR, c: targetC});
 
             chosenActions = chosenActions.map(a => ({
                 startR: targetR, startC: targetC,
@@ -402,7 +445,6 @@
             if (pieceVal === 1 && finalR === 0) currentBoard[finalR][finalC] = 3;
             if (pieceVal === 2 && finalR === 7) currentBoard[finalR][finalC] = 4;
 
-            // Constrói a string de notação (Ex: A3-B4 ou A3xC5)
             const symbol = turnCaptures ? 'x' : '-';
             const notation = turnPath.map(pos => getCoordName(pos.r, pos.c)).join(symbol);
             const playerNameText = myRole === 'p1' ? 'Brancas' : 'Pretas';

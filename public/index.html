@@ -21,27 +21,46 @@
         .modal input:focus { border-color: #4CAF50; }
         .btn { width: 100%; padding: 12px; border-radius: 6px; border: none; background: #4CAF50; color: white; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; margin-top: 10px;}
         .btn:hover { background: #45a049; }
+        .btn.secondary { background: #444; border: 1px solid #666; margin-top: 10px; font-size: 14px; padding: 8px;}
+        .btn.secondary:hover { background: #555; }
         
-        #gameUI { display: none; width: 100%; max-width: 400px; padding: 10px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center;}
+        #mainLayout { display: flex; gap: 20px; max-width: 1200px; width: 100%; justify-content: center; padding: 20px; box-sizing: border-box; }
         
-        .info-panel { display: flex; justify-content: space-between; width: 360px; margin-bottom: 15px; gap: 10px;}
-        .player-card { background: var(--panel-bg); padding: 12px 10px; border-radius: 8px; flex: 1; text-align: center; border: 2px solid #333; transition: 0.3s; position: relative;}
+        .side-panel { background: var(--panel-bg); border-radius: 8px; border: 2px solid #333; width: 260px; display: flex; flex-direction: column; overflow: hidden; height: 500px; }
+        .panel-header { background: #2c2c2c; padding: 12px; font-weight: bold; text-align: center; border-bottom: 2px solid #333; font-size: 14px; letter-spacing: 1px;}
+        .panel-content { flex: 1; overflow-y: auto; padding: 10px; font-size: 14px; display: flex; flex-direction: column; gap: 8px; }
+        
+        /* Chat Styles */
+        .chat-msg { background: #2a2a2a; padding: 8px 10px; border-radius: 6px; line-height: 1.4;}
+        .chat-msg.system { background: transparent; color: #aaa; font-style: italic; text-align: center; font-size: 12px; }
+        .chat-msg b { color: #4CAF50; }
+        #chatInputContainer { display: flex; border-top: 2px solid #333; }
+        #chatInput { border: none; flex: 1; padding: 12px; background: #111; color: white; outline: none; }
+        #chatBtn { background: #4CAF50; border: none; color: white; padding: 0 15px; cursor: pointer; font-weight: bold;}
+        
+        /* History Styles */
+        .history-move { background: #2a2a2a; padding: 8px 10px; border-radius: 6px; display: flex; justify-content: space-between;}
+        .history-move span:last-child { color: #ff9800; font-weight: bold; }
+
+        #gameUI { display: flex; flex-direction: column; align-items: center; }
+        
+        .info-panel { display: flex; justify-content: space-between; width: 100%; margin-bottom: 10px; gap: 10px;}
+        .player-card { background: var(--panel-bg); padding: 10px; border-radius: 8px; flex: 1; text-align: center; border: 2px solid #333; transition: 0.3s; position: relative;}
         .active-turn { border-color: #4CAF50; background: #1a2e1e; }
         
-        /* Correção do Placar */
-        .score-badge { 
-            position: absolute; top: -10px; right: -10px; 
-            background: #ff9800; color: #000; font-weight: bold; 
-            min-width: 24px; height: 24px; border-radius: 12px; 
-            display: flex; align-items: center; justify-content: center; 
-            font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-            padding: 0 6px; box-sizing: border-box;
-        }
+        .score-badge { position: absolute; top: -10px; right: -10px; background: #ff9800; color: #000; font-weight: bold; min-width: 24px; height: 24px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); padding: 0 6px; box-sizing: border-box; }
         
-        #myRole { text-align: center; margin-bottom: 15px; font-weight: 500; color: #aaa; font-size: 14px; width: 100%;}
+        #myRole { text-align: center; margin-bottom: 10px; font-weight: 500; color: #aaa; font-size: 14px; width: 100%;}
         
-        #board-wrapper { padding: 8px; background: #2c1a0e; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.7); }
-        #board { display: grid; grid-template-columns: repeat(8, 45px); grid-template-rows: repeat(8, 45px); width: 360px; height: 360px; border: 2px solid #1a0f08;}
+        /* Coordinate Board Layout */
+        .board-layout { display: grid; grid-template-columns: 25px 360px; grid-template-rows: 360px 25px; gap: 4px; background: #1e1e1e; padding: 15px; border-radius: 8px; border: 2px solid #333;}
+        .col-labels { grid-column: 2; grid-row: 2; display: flex; }
+        .col-labels div { flex: 1; display: flex; justify-content: center; align-items: center; font-weight: bold; color: #888; font-size: 13px;}
+        .row-labels { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; }
+        .row-labels div { flex: 1; display: flex; justify-content: center; align-items: center; font-weight: bold; color: #888; font-size: 13px;}
+        
+        #board-wrapper { grid-column: 2; grid-row: 1; padding: 0; background: #2c1a0e; box-shadow: 0 10px 40px rgba(0,0,0,0.7); }
+        #board { display: grid; grid-template-columns: repeat(8, 45px); grid-template-rows: repeat(8, 45px); width: 360px; height: 360px; border: 2px solid #1a0f08; box-sizing: border-box;}
         
         .cell { width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; position: relative; }
         .light { background-color: var(--board-light); }
@@ -58,13 +77,18 @@
         .highlight::after { content: ''; width: 18px; height: 18px; background: var(--highlight); border-radius: 50%; position: absolute; z-index: 1;}
         .selectable { cursor: pointer; }
         .selectable:hover { transform: scale(1.08); }
+
+        @media (max-width: 950px) {
+            #mainLayout { flex-direction: column; align-items: center; }
+            .side-panel { width: 100%; max-width: 400px; height: 250px; }
+        }
     </style>
 </head>
 <body>
     <div id="loginOverlay" class="overlay">
         <div class="modal">
             <h2>Dama Brasileira</h2>
-            <input type="text" id="playerName" placeholder="Digite seu nome..." autocomplete="off">
+            <input type="text" id="playerName" placeholder="Digite seu nome..." autocomplete="off" onkeypress="if(event.key === 'Enter') joinGame()">
             <button class="btn" onclick="joinGame()">Entrar na Sala</button>
         </div>
     </div>
@@ -77,28 +101,56 @@
         </div>
     </div>
 
-    <div id="gameUI" class="hidden">
-        <div class="info-panel">
-            <div class="player-card" id="cardP1">
-                <div class="score-badge" id="scoreP1">0</div>
-                Brancas<br><b id="nameP1">...</b>
-            </div>
-            <div class="player-card" id="cardP2">
-                <div class="score-badge" id="scoreP2">0</div>
-                Pretas<br><b id="nameP2">...</b>
-            </div>
-        </div>
-        <div id="myRole">Conectando...</div>
+    <div id="mainLayout" class="hidden">
         
-        <div id="board-wrapper">
-            <div id="board"></div>
+        <div class="side-panel">
+            <div class="panel-header">HISTÓRICO DE MOVIMENTOS</div>
+            <div class="panel-content" id="historyContent">
+                </div>
         </div>
+
+        <div id="gameUI">
+            <div class="info-panel">
+                <div class="player-card" id="cardP1">
+                    <div class="score-badge" id="scoreP1">0</div>
+                    Brancas<br><b id="nameP1">...</b>
+                </div>
+                <div class="player-card" id="cardP2">
+                    <div class="score-badge" id="scoreP2">0</div>
+                    Pretas<br><b id="nameP2">...</b>
+                </div>
+            </div>
+            
+            <div id="myRole">Conectando...</div>
+            
+            <div class="board-layout">
+                <div class="row-labels" id="rowLabels"></div>
+                <div id="board-wrapper">
+                    <div id="board"></div>
+                </div>
+                <div class="col-labels" id="colLabels"></div>
+            </div>
+
+            <button class="btn secondary" onclick="requestSwap()">Trocar Cores (Reiniciar)</button>
+        </div>
+
+        <div class="side-panel">
+            <div class="panel-header">CHAT DA PARTIDA</div>
+            <div class="panel-content" id="chatContent">
+                </div>
+            <div id="chatInputContainer">
+                <input type="text" id="chatInput" placeholder="Envie uma mensagem..." autocomplete="off" onkeypress="if(event.key === 'Enter') sendChat()">
+                <button id="chatBtn" onclick="sendChat()">Enviar</button>
+            </div>
+        </div>
+
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
         let myRole = null;
+        let myName = "";
         let currentBoard = [];
         let currentTurn = 1;
         let gameActive = false;
@@ -106,17 +158,57 @@
         let globalValidActions = [];
         let isMultiJumping = false;
         let selectedCell = null;
+        
+        // Tracking path notation
+        let turnPath = [];
+        let turnCaptures = false;
 
         const myNum = () => myRole === 'p1' ? 1 : 2;
         const isValid = (r, c) => r >= 0 && r < 8 && c >= 0 && c < 8;
         const cloneBoard = (b) => b.map(row => [...row]);
+        const getCoordName = (r, c) => String.fromCharCode(65 + c) + (8 - r);
 
         function joinGame() {
             const name = document.getElementById('playerName').value.trim();
             if (!name) return;
+            myName = name;
             socket.emit('join', name);
             document.getElementById('loginOverlay').classList.add('hidden');
-            document.getElementById('gameUI').classList.remove('hidden');
+            document.getElementById('mainLayout').classList.remove('hidden');
+        }
+
+        function sendChat() {
+            const input = document.getElementById('chatInput');
+            if (input.value.trim()) {
+                socket.emit('sendChat', input.value.trim());
+                input.value = '';
+            }
+        }
+
+        socket.on('newChatMessage', (msg) => {
+            appendChat(msg);
+        });
+
+        function appendChat(msg) {
+            const chatBox = document.getElementById('chatContent');
+            const div = document.createElement('div');
+            
+            if (msg.system) {
+                div.className = 'chat-msg system';
+                div.innerText = msg.text;
+            } else {
+                div.className = 'chat-msg';
+                div.innerHTML = `<b>${msg.sender}:</b> ${msg.text}`;
+            }
+            
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function requestSwap() {
+            if(confirm("Isso irá trocar as cores e reiniciar a partida. Deseja continuar?")) {
+                socket.emit('swapRoles');
+            }
         }
 
         socket.on('role', (role) => {
@@ -126,7 +218,6 @@
         });
 
         socket.on('playerLeft', () => {
-            alert("Um jogador saiu da sala. O tabuleiro e os placares foram resetados.");
             document.getElementById('gameOverOverlay').classList.add('hidden');
         });
 
@@ -160,7 +251,22 @@
             document.getElementById('scoreP1').innerText = state.scores.p1;
             document.getElementById('scoreP2').innerText = state.scores.p2;
             
-            // Só verifica os movimentos e o fim de jogo se a partida estiver ativa
+            // Render History
+            const historyBox = document.getElementById('historyContent');
+            historyBox.innerHTML = '';
+            state.moveHistory.forEach((move, index) => {
+                const div = document.createElement('div');
+                div.className = 'history-move';
+                div.innerHTML = `<span>${index + 1}. ${move.player}</span> <span>${move.notation}</span>`;
+                historyBox.appendChild(div);
+            });
+            historyBox.scrollTop = historyBox.scrollHeight;
+
+            // Render Full Chat (For reconnects)
+            if(state.chatMessages && state.chatMessages.length > 0 && document.getElementById('chatContent').childElementCount === 0) {
+                state.chatMessages.forEach(appendChat);
+            }
+
             if (gameActive && myRole !== 'spectator' && currentTurn === myNum()) {
                 globalValidActions = calculateAllValidActions(currentBoard, myNum());
                 
@@ -182,13 +288,40 @@
 
         function renderBoard() {
             const boardDiv = document.getElementById('board');
-            boardDiv.innerHTML = '';
+            const colLabelsDiv = document.getElementById('colLabels');
+            const rowLabelsDiv = document.getElementById('rowLabels');
             
+            boardDiv.innerHTML = '';
+            colLabelsDiv.innerHTML = '';
+            rowLabelsDiv.innerHTML = '';
+            
+            const isP2 = myRole === 'p2';
+            let renderRows = [0,1,2,3,4,5,6,7];
+            let renderCols = [0,1,2,3,4,5,6,7];
+            
+            // Gira o tabuleiro visualmente se o jogador for as pretas (P2)
+            if (isP2) {
+                renderRows.reverse();
+                renderCols.reverse();
+            }
+            
+            // Build Labels
+            renderCols.forEach(c => {
+                const l = document.createElement('div');
+                l.innerText = String.fromCharCode(65 + c);
+                colLabelsDiv.appendChild(l);
+            });
+            renderRows.forEach(r => {
+                const l = document.createElement('div');
+                l.innerText = 8 - r;
+                rowLabelsDiv.appendChild(l);
+            });
+
             const validStartCells = !isMultiJumping ? globalValidActions.map(a => `${a.startR},${a.startC}`) : [];
             const validLandings = selectedCell ? globalValidActions.filter(a => a.startR === selectedCell.r && a.startC === selectedCell.c).map(a => a.path[0]) : [];
 
-            for (let r = 0; r < 8; r++) {
-                for (let c = 0; c < 8; c++) {
+            renderRows.forEach(r => {
+                renderCols.forEach(c => {
                     const cell = document.createElement('div');
                     const isDark = (r + c) % 2 !== 0;
                     cell.className = `cell ${isDark ? 'dark' : 'light'}`;
@@ -214,8 +347,8 @@
                         cell.appendChild(piece);
                     }
                     boardDiv.appendChild(cell);
-                }
-            }
+                });
+            });
         }
 
         function handleCellClick(r, c, isLanding) {
@@ -223,6 +356,8 @@
 
             if (!isMultiJumping && globalValidActions.some(a => a.startR === r && a.startC === c)) {
                 selectedCell = { r, c };
+                turnPath = [{r, c}]; // Inicia o caminho para notação
+                turnCaptures = false;
                 renderBoard();
             } else if (isLanding && selectedCell) {
                 executeActionStep(r, c);
@@ -239,7 +374,10 @@
             if (chosenActions[0].captured.length > 0) {
                 const cap = chosenActions[0].captured[0];
                 currentBoard[cap.r][cap.c] = -Math.abs(currentBoard[cap.r][cap.c]); 
+                turnCaptures = true; // Registra que houve captura
             }
+
+            turnPath.push({r: targetR, c: targetC}); // Registra o passo
 
             chosenActions = chosenActions.map(a => ({
                 startR: targetR, startC: targetC,
@@ -264,8 +402,13 @@
             if (pieceVal === 1 && finalR === 0) currentBoard[finalR][finalC] = 3;
             if (pieceVal === 2 && finalR === 7) currentBoard[finalR][finalC] = 4;
 
+            // Constrói a string de notação (Ex: A3-B4 ou A3xC5)
+            const symbol = turnCaptures ? 'x' : '-';
+            const notation = turnPath.map(pos => getCoordName(pos.r, pos.c)).join(symbol);
+            const playerNameText = myRole === 'p1' ? 'Brancas' : 'Pretas';
+
             const nextTurn = currentTurn === 1 ? 2 : 1;
-            socket.emit('makeMove', { board: currentBoard, nextTurn });
+            socket.emit('makeMove', { board: currentBoard, nextTurn, notation, playerName: playerNameText });
         }
 
         function calculateAllValidActions(board, playerNum) {
